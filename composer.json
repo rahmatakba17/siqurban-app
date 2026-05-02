@@ -7,7 +7,7 @@
     "php": "^8.2",
     "chillerlan/php-qrcode": "^6.0",
     "guzzlehttp/guzzle": "^7.7",
-    "laravel/framework": "^11.0",
+    "laravel/framework": "^12.0",
     "laravel/octane": "^2.3",
     "laravel/pulse": "^1.0",
     "laravel/reverb": "^1.0",

@@ -60,11 +60,7 @@ log "Menjalankan migrations..."
 php artisan migrate --force --quiet
 ok "Migrations selesai"
 
-# ── 5. Run Pulse Migrations (jika belum ada) ─────────────────
-log "Memeriksa tabel Pulse..."
-php artisan vendor:publish --tag=pulse-migrations --quiet 2>/dev/null || true
-php artisan migrate --force --quiet
-ok "Pulse tables siap"
+# ── 5. Pulse tables sudah di-handle di migrasi reguler ──────
 
 # ── 6. Jalankan Seeder (hanya jika DB masih kosong) ──────────
 COUPON_COUNT=$(php artisan tinker --no-interaction --execute="echo \App\Models\User::count();" 2>/dev/null | tail -1 || echo "0")
