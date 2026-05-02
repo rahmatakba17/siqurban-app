@@ -1,0 +1,148 @@
+# ═══════════════════════════════════════════════════════════════
+# SI Qurban — Docker Compose (Cross-Platform)
+# Compatible: Windows Docker Desktop, macOS, Linux
+#
+# CARA PAKAI:
+#   1. Salin .env.docker.example → .env.docker
+#   2. Jalankan: docker compose up --build
+#   3. Buka: http://localhost:8000
+# ═══════════════════════════════════════════════════════════════
+
+name: siqurban
+
+services:
+
+  # ─────────────────────────────────────────────────────────────
+  # 🌐 Laravel App (Nginx + PHP-FPM + Queue + Pulse)
+  # ─────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: "${WWWGROUP:-1000}"
+        WWWUSER:  "${WWWUSER:-1000}"
+    image: siqurban-app:latest
+    container_name: siqurban-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"          # Nginx port 80 → host port 8000
+    env_file:
+      - .env.docker
+    volumes:
+      # Source code (development) — hilangkan baris ini untuk production pure image
+      - .:/var/www/html:cached
+      # Override vendor dari host dengan versi di image
+      - siqurban_vendor:/var/www/html/vendor
+      # Persist built assets
+      - siqurban_build:/var/www/html/public/build
+      # Persist storage (upload files, logs)
+      - siqurban_storage:/var/www/html/storage
+    networks:
+      - siqurban_net
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:80/up || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # ─────────────────────────────────────────────────────────────
+  # 📡 Reverb — WebSocket Server (Real-Time)
+  # ─────────────────────────────────────────────────────────────
+  reverb:
+    image: siqurban-app:latest
+    container_name: siqurban-reverb
+    restart: unless-stopped
+    ports:
+      - "${REVERB_PORT:-8090}:8090"
+    env_file:
+      - .env.docker
+    volumes:
+      - .:/var/www/html:cached
+      - siqurban_vendor:/var/www/html/vendor
+    command: >
+      php artisan reverb:start
+      --host=0.0.0.0
+      --port=8090
+      --no-interaction
+    networks:
+      - siqurban_net
+    depends_on:
+      app:
+        condition: service_healthy
+
+  # ─────────────────────────────────────────────────────────────
+  # 🗄️  MySQL 8 — Database
+  # ─────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.4
+    container_name: siqurban-mysql
+    restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_DATABASE:      "${DB_DATABASE:-siqurban}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root_siqurban}"
+      MYSQL_USER:          "${DB_USERNAME:-siqurban}"
+      MYSQL_PASSWORD:      "${DB_PASSWORD:-secret}"
+    volumes:
+      - siqurban_mysql:/var/lib/mysql
+      # Custom MySQL config
+      - ./docker/mysql.cnf:/etc/mysql/conf.d/siqurban.cnf:ro
+    networks:
+      - siqurban_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1",
+             "-u", "root", "-p${DB_ROOT_PASSWORD:-root_siqurban}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # ─────────────────────────────────────────────────────────────
+  # 🔐 phpMyAdmin — Database Manager (Browser)
+  # ─────────────────────────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: siqurban-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${PMA_PORT:-8080}:80"
+    environment:
+      PMA_HOST:         mysql
+      PMA_PORT:         3306
+      PMA_USER:         root
+      PMA_PASSWORD:     "${DB_ROOT_PASSWORD:-root_siqurban}"
+      UPLOAD_LIMIT:     64M
+      MAX_EXECUTION_TIME: 600
+      MEMORY_LIMIT:     256M
+    networks:
+      - siqurban_net
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+# ─────────────────────────────────────────────────────────────
+# 🔒 Volumes — Persistent Data
+# ─────────────────────────────────────────────────────────────
+volumes:
+  siqurban_mysql:
+    name: siqurban-mysql-data
+  siqurban_vendor:
+    name: siqurban-vendor
+  siqurban_build:
+    name: siqurban-build
+  siqurban_storage:
+    name: siqurban-storage
+
+# ─────────────────────────────────────────────────────────────
+# 🌐 Network — Internal Service Communication
+# ─────────────────────────────────────────────────────────────
+networks:
+  siqurban_net:
+    name: siqurban-network
+    driver: bridge

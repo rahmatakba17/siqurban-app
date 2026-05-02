@@ -1,0 +1,52 @@
+# ─── Git ─────────────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+
+# ─── Node ────────────────────────────────────────────────────
+node_modules/
+
+# ─── Laravel caches (akan di-generate ulang di container) ────
+bootstrap/cache/*.php
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+storage/logs/
+
+# ─── Environment (JANGAN masukkan ke image!) ─────────────────
+.env
+.env.local
+.env.*.local
+.env.docker
+
+# ─── IDE & OS ────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Testing ─────────────────────────────────────────────────
+tests/
+cypress/
+.phpunit.result.cache
+
+# ─── Dokumentasi ─────────────────────────────────────────────
+docs/
+README*.md
+*.md
+CHANGELOG*
+
+# ─── CI/CD ───────────────────────────────────────────────────
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# ─── Build artifacts dari host (pakai versi dari Stage 1) ────
+public/build/
+public/hot
+
+# ─── Vendor (akan diinstall ulang di container) ──────────────
+vendor/

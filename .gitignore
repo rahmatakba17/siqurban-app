@@ -1,0 +1,54 @@
+# Laravel
+/vendor/
+/node_modules/
+/public/hot
+/public/storage
+/storage/*.key
+.env
+.env.docker
+.env.backup
+.env.production.local
+Homestead.json
+Homestead.yaml
+auth.json
+
+# Bootstrap & Cache
+/bootstrap/cache/*.php
+
+# Storage (logs, compiled views, cache)
+/storage/logs/
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/app/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.buildpath
+.settings
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+/coverage
+/.phpunit.result.cache
+.phpunit.result.cache
+
+# Compiled assets (Vite build)
+/public/build/
+/public/css/
+/public/js/
+/public/mix-manifest.json
+
+# NPM
+npm-debug.log
+yarn-error.log

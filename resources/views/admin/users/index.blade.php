@@ -1,0 +1,67 @@
+@extends('layouts.app')
+
+@section('page-title', 'Kelola User')
+
+@section('content')
+<div class="mb-6 flex items-center justify-between gap-4">
+    <div>
+        <h2 class="text-xl font-bold text-slate-900">Daftar User</h2>
+        <p class="text-sm text-stone-500">Kelola akun admin dan panitia dari halaman ini.</p>
+    </div>
+    <a href="{{ route('admin.users.create') }}" class="btn-primary">Tambah User</a>
+</div>
+
+<div class="card p-6">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-stone-100 text-stone-600">
+                <tr>
+                    <th class="px-4 py-3 text-left">Nama</th>
+                    <th class="px-4 py-3 text-left">Email</th>
+                    <th class="px-4 py-3 text-left">No. HP</th>
+                    <th class="px-4 py-3 text-left">Role</th>
+                    <th class="px-4 py-3 text-left">Status</th>
+                    <th class="px-4 py-3 text-left">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($users as $user)
+                    <tr class="border-b border-stone-100 hover:bg-stone-50">
+                        <td class="px-4 py-4 font-semibold text-slate-900">{{ $user->name }}</td>
+                        <td class="px-4 py-4">{{ $user->email }}</td>
+                        <td class="px-4 py-4">{{ $user->phone }}</td>
+                        <td class="px-4 py-4">
+                            <span class="rounded-full px-3 py-1 {{ $user->role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-teal-100 text-teal-700' }}">
+                                {{ ucfirst($user->role) }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <span class="rounded-full px-3 py-1 {{ $user->status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-200 text-stone-700' }}">
+                                {{ ucfirst($user->status) }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <div class="flex gap-3">
+                                <a href="{{ route('admin.users.edit', $user) }}" class="font-semibold text-primary hover:text-teal-800">Edit</a>
+                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="font-semibold text-red-600 hover:text-red-700" onclick="return confirm('Yakin ingin menghapus?')">Hapus</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-stone-500">Belum ada user yang tersimpan.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6">
+        {{ $users->links() }}
+    </div>
+</div>
+@endsection
