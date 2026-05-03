@@ -53,4 +53,22 @@ class CouponController
         // Implementation untuk import Excel
         return response()->json(['message' => 'Import berhasil']);
     }
+
+    public function checkPublic($code)
+    {
+        $coupon = Coupon::with('region')->where('code', strtoupper(trim($code)))->first();
+        
+        if (!$coupon) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        return response()->json([
+            'code' => $coupon->code,
+            'status' => $coupon->status,
+            'sacrificer_name' => $coupon->sacrificer_name,
+            'type' => $coupon->type,
+            'region_name' => $coupon->region ? $coupon->region->name : '-',
+            'received_at' => $coupon->received_at ? $coupon->received_at->format('d M Y - H:i') : null,
+        ]);
+    }
 }

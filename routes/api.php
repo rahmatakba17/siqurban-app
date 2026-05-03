@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\ReportController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
+// Public endpoint
+Route::get('/check-coupon/{code}', [CouponController::class, 'checkPublic']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
