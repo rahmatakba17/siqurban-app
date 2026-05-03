@@ -230,8 +230,7 @@
     </section>
 
     {{-- ░░ CEK KUPON GUEST ░░ --}}
-    <section id="cek-kupon" class="relative py-24 bg-slate-950 overflow-hidden" 
-             x-data="couponChecker()">
+    <section id="cek-kupon" class="relative py-24 bg-slate-950 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent"></div>
         <div class="relative z-10 w-full max-w-2xl mx-auto px-4">
             {{-- Search Box --}}
@@ -239,7 +238,7 @@
                 <h3 class="text-2xl font-bold text-white mb-2 text-center">Cek Status Kupon Anda</h3>
                 <p class="text-stone-400 text-center mb-8 text-sm">Masukkan kode unik pada kupon kurban Anda untuk melihat detail dan status penerimaan daging.</p>
                 
-                <form @submit.prevent="checkCoupon" class="relative">
+                <form id="couponForm" class="relative">
                     <div class="flex flex-col md:flex-row gap-3">
                         <div class="relative flex-1">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -247,26 +246,26 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
-                            <!-- Added style padding-left 3rem to override tailwind if JIT missing -->
-                            <input x-model="searchCode" type="text" placeholder="Contoh: QURBAN-XXXXX" 
+                            <input id="searchCode" type="text" placeholder="Contoh: QURBAN-XXXXX" 
                                    style="padding-left: 3rem;"
-                                   class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pr-4 text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition uppercase tracking-wider font-mono">
+                                   class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pr-4 text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition uppercase tracking-wider font-mono" required>
                         </div>
-                        <button type="submit" :disabled="loading" class="bg-primary hover:bg-teal-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group disabled:opacity-70">
-                            <span x-show="!loading">Periksa</span>
-                            <span x-show="loading">Memeriksa...</span>
-                            <svg x-show="!loading" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <button type="submit" id="submitBtn" class="bg-primary hover:bg-teal-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group disabled:opacity-70">
+                            <span id="btnText">Periksa</span>
+                            <span id="btnLoading" style="display: none;">Memeriksa...</span>
+                            <svg id="btnIcon" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
                         </button>
                     </div>
-                    <p x-show="errorMsg" x-text="errorMsg" class="text-red-400 text-sm mt-2 ml-2" x-cloak></p>
+                    <p id="errorMsg" style="display: none;" class="text-red-400 text-sm mt-2 ml-2"></p>
                 </form>
 
                 {{-- Results Area --}}
-                <div x-show="hasSearched" class="mt-8 pt-8 border-t border-white/10" x-transition x-cloak>
+                <div id="resultArea" style="display: none;" class="mt-8 pt-8 border-t border-white/10 transition-all duration-300">
+                    
                     {{-- Sukses --}}
-                    <div x-show="coupon" class="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+                    <div id="resultSuccess" style="display: none;" class="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
                         <div class="absolute -right-6 -bottom-6 opacity-5 pointer-events-none">
                             <svg class="w-48 h-48 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -276,14 +275,14 @@
                         <div class="flex items-center justify-between mb-6">
                             <div>
                                 <h4 class="text-stone-400 text-xs font-semibold uppercase tracking-wider mb-1">Hasil Pencarian</h4>
-                                <p class="text-xl font-mono font-bold text-white tracking-widest" x-text="coupon?.code"></p>
+                                <p id="resCode" class="text-xl font-mono font-bold text-white tracking-widest"></p>
                             </div>
                             <div>
-                                <span x-show="coupon?.status === 'diterima'" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                                <span id="badgeDiterima" style="display: none;" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                                     Sudah Diterima
                                 </span>
-                                <span x-show="coupon?.status !== 'diterima'" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-sm font-bold shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                                <span id="badgeBelum" style="display: none;" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-sm font-bold shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                                     <span class="w-2 h-2 rounded-full bg-amber-400"></span>
                                     Belum Diambil
                                 </span>
@@ -293,29 +292,29 @@
                         <div class="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
                             <div>
                                 <p class="text-stone-500 text-xs uppercase mb-0.5">Nama Pengkurban</p>
-                                <p class="text-stone-200 font-medium" x-text="coupon?.sacrificer_name || 'Hamba Allah'"></p>
+                                <p id="resName" class="text-stone-200 font-medium"></p>
                             </div>
                             <div>
                                 <p class="text-stone-500 text-xs uppercase mb-0.5">Jenis Kurban</p>
-                                <p class="text-stone-200 font-medium capitalize" x-text="coupon?.type"></p>
+                                <p id="resType" class="text-stone-200 font-medium capitalize"></p>
                             </div>
                             <div>
                                 <p class="text-stone-500 text-xs uppercase mb-0.5">Wilayah Penyaluran</p>
-                                <p class="text-stone-200 font-medium" x-text="coupon?.region_name || '-'"></p>
+                                <p id="resRegion" class="text-stone-200 font-medium"></p>
                             </div>
-                            <div x-show="coupon?.status === 'diterima'">
+                            <div id="resTimeContainer" style="display: none;">
                                 <p class="text-stone-500 text-xs uppercase mb-0.5">Waktu Pengambilan</p>
-                                <p class="text-emerald-400 font-bold" x-text="(coupon?.received_at || '-') + ' WIB'"></p>
+                                <p id="resTime" class="text-emerald-400 font-bold"></p>
                             </div>
                         </div>
 
                         <div class="mt-6 flex justify-center">
-                            <button @click="resetSearch" type="button" class="text-sm text-stone-400 hover:text-white transition underline underline-offset-4">Cek Kupon Lain</button>
+                            <button type="button" onclick="resetSearch()" class="text-sm text-stone-400 hover:text-white transition underline underline-offset-4">Cek Kupon Lain</button>
                         </div>
                     </div>
                     
                     {{-- Tidak Ditemukan --}}
-                    <div x-show="!coupon" class="text-center py-6">
+                    <div id="resultNotFound" style="display: none;" class="text-center py-6">
                         <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 border border-red-500/20">
                             <svg class="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -323,7 +322,7 @@
                         </div>
                         <h4 class="text-white font-bold mb-2">Kupon Tidak Ditemukan</h4>
                         <p class="text-stone-400 text-sm max-w-sm mx-auto mb-4">Pastikan kode yang Anda masukkan sudah benar (misal: QURBAN-XXXX). Periksa kembali huruf besar dan kecilnya atau hubungi panitia.</p>
-                        <button @click="resetSearch" type="button" class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white hover:bg-white/10 transition">Coba Lagi</button>
+                        <button type="button" onclick="resetSearch()" class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white hover:bg-white/10 transition">Coba Lagi</button>
                     </div>
                 </div>
             </div>
@@ -469,48 +468,84 @@
     </footer>
 
     <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('couponChecker', () => ({
-                searchCode: '',
-                loading: false,
-                hasSearched: false,
-                coupon: null,
-                errorMsg: '',
+        function resetSearch() {
+            document.getElementById('searchCode').value = '';
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('resultSuccess').style.display = 'none';
+            document.getElementById('resultNotFound').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('searchCode').focus();
+        }
 
-                async checkCoupon() {
-                    this.errorMsg = '';
-                    if (!this.searchCode || this.searchCode.length < 4) {
-                        this.errorMsg = 'Kode kupon minimal 4 karakter.';
-                        return;
+        document.getElementById('couponForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const searchInput = document.getElementById('searchCode');
+            const code = searchInput.value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            
+            const btnText = document.getElementById('btnText');
+            const btnLoading = document.getElementById('btnLoading');
+            const btnIcon = document.getElementById('btnIcon');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Reset areas
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('resultSuccess').style.display = 'none';
+            document.getElementById('resultNotFound').style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            if (!code || code.length < 4) {
+                errorMsg.textContent = 'Kode kupon minimal 4 karakter.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Set loading state
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnIcon.style.display = 'none';
+            btnLoading.style.display = 'inline-block';
+
+            try {
+                const response = await fetch('/api/check-coupon/' + encodeURIComponent(code));
+                document.getElementById('resultArea').style.display = 'block';
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    document.getElementById('resCode').textContent = data.code;
+                    document.getElementById('resName').textContent = data.sacrificer_name || 'Hamba Allah';
+                    document.getElementById('resType').textContent = data.type;
+                    document.getElementById('resRegion').textContent = data.region_name || '-';
+                    
+                    if (data.status === 'diterima') {
+                        document.getElementById('badgeDiterima').style.display = 'inline-flex';
+                        document.getElementById('badgeBelum').style.display = 'none';
+                        document.getElementById('resTimeContainer').style.display = 'block';
+                        document.getElementById('resTime').textContent = (data.received_at || '-') + ' WIB';
+                    } else {
+                        document.getElementById('badgeDiterima').style.display = 'none';
+                        document.getElementById('badgeBelum').style.display = 'inline-flex';
+                        document.getElementById('resTimeContainer').style.display = 'none';
                     }
 
-                    this.loading = true;
-                    try {
-                        const response = await fetch(`/api/check-coupon/${this.searchCode.trim()}`);
-                        
-                        this.hasSearched = true;
-                        
-                        if (response.ok) {
-                            this.coupon = await response.json();
-                        } else {
-                            this.coupon = null;
-                        }
-                    } catch (error) {
-                        console.error(error);
-                        this.errorMsg = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-
-                resetSearch() {
-                    this.searchCode = '';
-                    this.hasSearched = false;
-                    this.coupon = null;
-                    this.errorMsg = '';
+                    document.getElementById('resultSuccess').style.display = 'block';
+                } else {
+                    document.getElementById('resultNotFound').style.display = 'block';
                 }
-            }))
-        })
+            } catch (error) {
+                console.error(error);
+                errorMsg.textContent = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
+                errorMsg.style.display = 'block';
+            } finally {
+                // Remove loading state
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline-block';
+                btnIcon.style.display = 'block';
+                btnLoading.style.display = 'none';
+            }
+        });
     </script>
 </body>
 
