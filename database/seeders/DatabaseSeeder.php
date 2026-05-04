@@ -25,25 +25,33 @@ class DatabaseSeeder extends Seeder
         Setting::set('app_url', 'http://localhost:8000');
 
         // ─── Admin ────────────────────────────────────────────────
-        User::updateOrCreate(['email' => 'admin@siqurban.local'], [
-            'name'     => 'Admin SI Qurban',
-            'password' => Hash::make('password'),
-            'phone'    => '081234567890',
-            'role'     => 'admin',
-            'status'   => 'active',
-        ]);
+        $adminNames = [
+            'Super Admin', 'Admin SI Qurban', 'Budi Santoso', 'Siti Aminah'
+        ];
+        foreach ($adminNames as $i => $name) {
+            $email = 'admin' . ($i + 1) . '@siqurban.local';
+            User::updateOrCreate(['name' => $name], [
+                'email'    => $email,
+                'password' => Hash::make('password'),
+                'phone'    => '08123456789' . $i,
+                'role'     => $i === 0 ? 'superadmin' : 'admin',
+                'status'   => 'active',
+            ]);
+        }
 
         // ─── Panitia ──────────────────────────────────────────────
         $panitiaNames = [
             'Ahmad Fauzi', 'Siti Rahma', 'Muhammad Rizky',
-            'Nur Aisyah', 'Bagas Santoso',
+            'Nur Aisyah', 'Bagas Santoso', 'Lestari Indah',
+            'Wahyu Hidayat', 'Dina Mariana', 'Eko Prasetyo',
+            'Rini Wulandari'
         ];
         $panitiaUsers = [];
         foreach ($panitiaNames as $i => $name) {
             $panitiaUsers[] = User::updateOrCreate([
-                'email' => 'panitia' . ($i + 1) . '@siqurban.local',
+                'name' => $name,
             ], [
-                'name'     => $name,
+                'email'    => 'panitia' . ($i + 1) . '@siqurban.local',
                 'password' => Hash::make('password'),
                 'phone'    => '0812345' . str_pad((string) ($i + 1), 5, '0', STR_PAD_LEFT),
                 'role'     => 'panitia',
@@ -122,8 +130,8 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->command->info('✅ Seeder selesai!');
-        $this->command->info('   Admin: admin@siqurban.local / password');
-        $this->command->info('   Panitia: panitia1@siqurban.local / password');
+        $this->command->info('   Admin: Super Admin / password');
+        $this->command->info('   Panitia: Ahmad Fauzi / password');
         $this->command->info('   Total kupon: ' . Coupon::count() . ' | Diterima: ' . Coupon::where('status','received')->count());
     }
 }

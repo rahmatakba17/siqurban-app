@@ -26,19 +26,33 @@ class AuthController extends Controller
         $credentials = $request->validated();
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
             $user = Auth::user();
+            
+            if ($user->status === 'inactive') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'name' => 'Akun Anda belum aktif. Harap tunggu konfirmasi Admin.',
+                ])->onlyInput('name');
+            }
+
+            $request->session()->regenerate();
+
+            if ($user->role === 'panitia') {
+                event(new \App\Events\PanitiaLoggedIn($user));
+            }
 
             return redirect()->intended(
-                $user->role === 'admin'
+                in_array($user->role, ['admin', 'superadmin'])
                     ? route('admin.dashboard')
                     : route('panitia.dashboard')
             );
         }
 
         return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->onlyInput('email');
+            'name' => 'Nama atau password salah.',
+        ])->onlyInput('name');
     }
 
     public function logout(\Illuminate\Http\Request $request)
@@ -56,16 +70,14 @@ class AuthController extends Controller
 
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'] ?? null,
             'password' => Hash::make($validated['password']),
             'role' => 'panitia',
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
 
-        Auth::login($user);
-
-        return redirect()->route('panitia.dashboard')
-            ->with('success', 'Registrasi berhasil. Selamat datang di SI Qurban.');
+        return redirect()->route('login')
+            ->with('success', 'Registrasi berhasil. Harap tunggu konfirmasi Admin sebelum dapat login.');
     }
 }

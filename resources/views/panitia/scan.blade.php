@@ -8,6 +8,13 @@
 
     {{-- ░░ PANEL KIRI: Scanner + Form ░░ --}}
     <div class="space-y-6">
+        {{-- Nama Penerima Input --}}
+        <div class="card p-6 border-2 border-emerald-500/20 bg-emerald-50/50">
+            <h3 class="text-base font-bold text-slate-900 mb-2">👤 Nama Penerima Daging</h3>
+            <p class="text-sm text-stone-500 mb-3">Wajib diisi dengan nama warga yang mengambil daging kurban sebelum melakukan scan.</p>
+            <input type="text" id="receiver_name" class="form-input text-lg font-semibold" placeholder="Contoh: Bpk. Budi Santoso" required>
+        </div>
+
         {{-- Tab selector --}}
         <div class="card p-1 flex gap-1">
             <button id="tab-camera" onclick="switchTab('camera')"
@@ -100,8 +107,15 @@ function startScanner() {
         (decodedText) => {
             let code = decodedText;
             try { const p = JSON.parse(decodedText); if (p.coupon_code) code = p.coupon_code; } catch(_) {}
+            
+            const receiverName = document.getElementById('receiver_name').value.trim();
+            if (!receiverName) {
+                alert("Harap isi Nama Penerima Daging terlebih dahulu sebelum scan QR!");
+                return; // jangan stop scanner, biarkan jalan tapi kasih alert
+            }
+            
             stopScanner();
-            verifyCoupon(code, 'kamera');
+            verifyCoupon(code, 'kamera', receiverName);
         },
         () => {}
     ).then(() => {
@@ -117,7 +131,7 @@ function stopScanner() {
 }
 
 // ── Verify ────────────────────────────────────────────────────
-async function verifyCoupon(code, mode = 'manual') {
+async function verifyCoupon(code, mode = 'manual', receiverName = '') {
     const resultEl = document.getElementById('scan-result');
     resultEl.className = 'rounded-2xl bg-sky-50 border border-sky-200 p-5 text-sm text-sky-700 text-center animate-pulse-soft';
     resultEl.innerHTML = '<p class="font-semibold">🔍 Memverifikasi...</p><p class="text-xs mt-1 font-mono">' + code + '</p>';
@@ -126,7 +140,7 @@ async function verifyCoupon(code, mode = 'manual') {
         const res  = await fetch(VERIFY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-            body: JSON.stringify({ coupon_code: code, mode }),
+            body: JSON.stringify({ coupon_code: code, mode, receiver_name: receiverName }),
         });
         const data = await res.json();
 
@@ -147,11 +161,25 @@ async function verifyCoupon(code, mode = 'manual') {
                     <div class="flex justify-between bg-emerald-100 rounded-xl px-3 py-2">
                         <span class="text-emerald-600">Wilayah</span><span class="font-semibold">${data.coupon.region || '—'}</span>
                     </div>
+                    <div class="flex justify-between bg-emerald-100 rounded-xl px-3 py-2">
+                        <span class="text-emerald-600">Penerima</span><span class="font-bold text-emerald-800">${data.coupon.receiver_name}</span>
+                    </div>
                 </div>`;
 
             // Trigger Livewire refresh via browser event
             document.dispatchEvent(new CustomEvent('livewire:dispatch', { detail: { component: 'scan-counter', event: 'coupon-scanned' } }));
             window.Livewire?.dispatch('coupon-scanned');
+
+            // Tampilkan Notifikasi Toast Sukses
+            window.dispatchEvent(new CustomEvent('notify', {
+                detail: {
+                    message: `✅ Kupon ${data.coupon.code} berhasil diserahkan ke ${data.coupon.receiver_name}.`,
+                    type: 'success'
+                }
+            }));
+
+            // Kosongkan nama penerima untuk scan berikutnya
+            document.getElementById('receiver_name').value = '';
 
             setTimeout(() => startScanner(), 2500);
         } else {
@@ -176,7 +204,18 @@ async function verifyCoupon(code, mode = 'manual') {
 document.getElementById('scan-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const code = document.getElementById('coupon_code').value.trim();
-    if (code) { verifyCoupon(code, 'manual'); document.getElementById('coupon_code').value = ''; }
+    const receiverName = document.getElementById('receiver_name').value.trim();
+    
+    if (!receiverName) {
+        alert("Harap isi Nama Penerima Daging terlebih dahulu!");
+        document.getElementById('receiver_name').focus();
+        return;
+    }
+    
+    if (code) { 
+        verifyCoupon(code, 'manual', receiverName); 
+        document.getElementById('coupon_code').value = ''; 
+    }
 });
 
 document.addEventListener('DOMContentLoaded', () => startScanner());

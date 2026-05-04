@@ -6,10 +6,12 @@ use App\Models\Coupon;
 use App\Models\ScanHistory;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithBroadcasting;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CouponScanned
+class CouponScanned implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, SerializesModels;
 
@@ -31,6 +33,8 @@ class CouponScanned
         return [
             new Channel('coupons'),
             new Channel('region.' . $this->coupon->region_id),
+            new PrivateChannel('admin.notifications'),
+            new PrivateChannel('panitia.notifications'),
         ];
     }
 
@@ -45,6 +49,9 @@ class CouponScanned
             'scanned_by' => $this->scanHistory->user->name,
             'region' => $this->coupon->region->name,
             'timestamp' => $this->scanHistory->scan_time,
+            'message' => "Kupon {$this->coupon->code} diserahkan ke {$this->coupon->receiver_name} oleh Panitia {$this->scanHistory->user->name}.",
+            'type' => 'success',
+            'time' => now()->format('H:i'),
         ];
     }
 }

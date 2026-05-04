@@ -178,10 +178,11 @@ footer p{margin:0;font-size:0.875rem}
           </div>
         </div>
         <div class="result-grid">
-          <div class="result-item"><label>Nama Pekurban</label><span id="resName"></span></div>
-          <div class="result-item"><label>Jenis Hewan</label><span id="resType"></span></div>
+          <div class="result-item"><label>Pekurban</label><span id="resName"></span></div>
+          <div class="result-item"><label>Penerima Daging</label><span id="resReceiver" style="color:#15803d;font-weight:700"></span></div>
+          <div class="result-item"><label>Panitia Penyerah</label><span id="resPanitia"></span></div>
           <div class="result-item"><label>Wilayah Distribusi</label><span id="resRegion"></span></div>
-          <div id="resTimeContainer" class="result-item" style="display:none"><label>Waktu Diterima</label><span id="resTime" style="color:#15803d;font-weight:700"></span></div>
+          <div id="resTimeContainer" class="result-item" style="display:none; grid-column: 1 / -1;"><label>Waktu Diterima</label><span id="resTime" style="color:#15803d;font-weight:700"></span></div>
         </div>
         <div style="text-align:center;margin-top:1.5rem">
           <button class="reset-btn" onclick="resetSearch()">← Cek Kupon Lain</button>
@@ -328,9 +329,10 @@ document.getElementById('couponForm').addEventListener('submit',async function(e
       const d=await r.json();
       document.getElementById('resCode').textContent=d.code;
       document.getElementById('resName').textContent=d.sacrificer_name||'Hamba Allah';
-      document.getElementById('resType').textContent=d.type||'-';
+      document.getElementById('resReceiver').textContent=d.receiver_name||'Belum Diambil';
+      document.getElementById('resPanitia').textContent=d.scanned_by||'-';
       document.getElementById('resRegion').textContent=d.region_name||'-';
-      if(d.status==='diterima'){
+      if(d.status==='diterima' || d.status==='received'){
         document.getElementById('badgeDiterima').style.display='inline-flex';
         document.getElementById('badgeBelum').style.display='none';
         document.getElementById('resTimeContainer').style.display='block';

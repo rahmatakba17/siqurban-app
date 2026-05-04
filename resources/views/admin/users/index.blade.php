@@ -31,7 +31,12 @@
                         <td class="px-4 py-4">{{ $user->email }}</td>
                         <td class="px-4 py-4">{{ $user->phone }}</td>
                         <td class="px-4 py-4">
-                            <span class="rounded-full px-3 py-1 {{ $user->role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-teal-100 text-teal-700' }}">
+                            @php
+                                $roleClass = 'bg-teal-100 text-teal-700'; // Default panitia
+                                if ($user->role === 'admin') $roleClass = 'bg-amber-100 text-amber-700';
+                                if ($user->role === 'superadmin') $roleClass = 'bg-purple-100 text-purple-700 font-bold';
+                            @endphp
+                            <span class="rounded-full px-3 py-1 {{ $roleClass }}">
                                 {{ ucfirst($user->role) }}
                             </span>
                         </td>
@@ -41,14 +46,28 @@
                             </span>
                         </td>
                         <td class="px-4 py-4">
-                            <div class="flex gap-3">
-                                <a href="{{ route('admin.users.edit', $user) }}" class="font-semibold text-primary hover:text-teal-800">Edit</a>
-                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="font-semibold text-red-600 hover:text-red-700" onclick="return confirm('Yakin ingin menghapus?')">Hapus</button>
-                                </form>
-                            </div>
+                            @if(auth()->user()->role === 'superadmin' || (auth()->user()->role === 'admin' && !in_array($user->role, ['admin', 'superadmin'])))
+                                <div class="flex flex-wrap gap-3 items-center">
+                                    @if($user->status === 'inactive')
+                                        <form method="POST" action="{{ route('admin.users.update', $user) }}" class="inline">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="status" value="active">
+                                            <input type="hidden" name="name" value="{{ $user->name }}">
+                                            <input type="hidden" name="role" value="{{ $user->role }}">
+                                            <button type="submit" class="font-semibold text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-2 py-1 rounded">Aktifkan</button>
+                                        </form>
+                                    @endif
+                                    <a href="{{ route('admin.users.edit', $user) }}" class="font-semibold text-primary hover:text-teal-800">Edit</a>
+                                    <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="font-semibold text-red-600 hover:text-red-700" onclick="return confirm('Yakin ingin menghapus?')">Hapus</button>
+                                    </form>
+                                </div>
+                            @else
+                                <span class="text-stone-400 italic text-xs">Akses Terbatas</span>
+                            @endif
                         </td>
                     </tr>
                 @empty

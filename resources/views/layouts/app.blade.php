@@ -8,6 +8,23 @@
     <meta name="description" content="SI Qurban — Sistem Informasi Distribusi Kupon Kurban Digital">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    
+    <!-- Real-time Notifications: Pusher & Echo via CDN -->
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+    <script>
+        window.Pusher = Pusher;
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: '{{ config("broadcasting.connections.reverb.key") }}',
+            wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}' || window.location.hostname,
+            wsPort: {{ config("broadcasting.connections.reverb.options.port") ?? 8090 }},
+            wssPort: {{ config("broadcasting.connections.reverb.options.port") ?? 8090 }},
+            forceTLS: false,
+            disableStats: true,
+            enabledTransports: ['ws', 'wss'],
+        });
+    </script>
 </head>
 <body class="h-full bg-stone-50" x-data="{ sidebarOpen: false }">
 
@@ -74,9 +91,12 @@
                         Data Kupon
                     </a>
                     <p class="px-3 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">Monitoring</p>
-                    <a href="{{ route('admin.scans') }}" class="nav-item {{ request()->routeIs('admin.scans') ? 'active' : '' }}">
                         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                         Riwayat Scan
+                    </a>
+                    <a href="{{ route('admin.audit-logs') }}" class="nav-item {{ request()->routeIs('admin.audit-logs') ? 'active' : '' }}">
+                        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        Audit Logs
                     </a>
                     <a href="{{ route('admin.reports.index') }}" class="nav-item {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -146,7 +166,64 @@
                         <h1 class="text-lg font-bold text-slate-900 truncate">@yield('page-title', 'Dashboard')</h1>
                         <p class="text-xs text-stone-400 mt-0.5">@yield('page-subtitle', 'Sistem Informasi Distribusi Kurban')</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-3">
+                        {{-- Notification Bell (Dropdown) --}}
+                        <div class="relative">
+                            <button @click="showDropdown = !showDropdown" @click.away="showDropdown = false" 
+                                    class="relative p-2 rounded-xl text-stone-500 hover:bg-stone-100 focus:outline-none">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                {{-- Badge --}}
+                                <template x-if="toasts.length > 0">
+                                    <span class="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[9px] font-bold text-white bg-red-500 rounded-full border-2 border-white" x-text="toasts.length"></span>
+                                </template>
+                            </button>
+
+                            {{-- Dropdown Panel --}}
+                            <div x-show="showDropdown" x-cloak
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden z-50 origin-top-right flex flex-col max-h-[80vh]">
+                                
+                                <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between bg-stone-50">
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Notifikasi</h3>
+                                    <template x-if="toasts.length > 0">
+                                        <button @click="clearAll()" class="text-[10px] font-bold text-stone-500 hover:text-red-600 transition-colors">Bersihkan Semua</button>
+                                    </template>
+                                </div>
+
+                                <div class="overflow-y-auto flex-1">
+                                    <template x-if="toasts.length === 0">
+                                        <div class="p-6 text-center text-stone-400 text-xs">Belum ada notifikasi.</div>
+                                    </template>
+                                    <template x-for="toast in toasts" :key="toast.id">
+                                        <div class="p-4 border-b border-stone-50 hover:bg-stone-50 transition-colors flex items-start gap-3 relative group">
+                                            {{-- Icon --}}
+                                            <div class="shrink-0 mt-0.5">
+                                                <template x-if="toast.type === 'info'"><svg class="w-5 h-5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></template>
+                                                <template x-if="toast.type === 'success'"><svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></template>
+                                                <template x-if="toast.type === 'warning'"><svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></template>
+                                            </div>
+                                            {{-- Content --}}
+                                            <div class="flex-1 pr-6">
+                                                <p class="text-xs font-medium text-slate-800 leading-snug" x-text="toast.message"></p>
+                                                <p class="text-[10px] text-stone-400 mt-1 font-mono" x-text="toast.time"></p>
+                                            </div>
+                                            {{-- Delete Button (Shows on hover) --}}
+                                            <button @click.stop="removeToast(toast.id)" class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 text-stone-400 hover:text-red-500 transition-all">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
                         <span class="hidden md:flex items-center gap-2 rounded-xl border border-stone-200 px-3 py-2 text-sm">
                             <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
@@ -192,6 +269,64 @@
                 const el = document.getElementById(id);
                 if (el) setTimeout(() => el.style.display = 'none', 5000);
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('notificationCenter', () => ({
+                showDropdown: false,
+                toasts: [],
+                addToast(message, type = 'info', time = null) {
+                    const id = Date.now() + Math.random();
+                    if (!time) {
+                        const d = new Date();
+                        time = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+                    }
+                    this.toasts.unshift({ id, message, type, time }); // Add to top
+
+                    // Opsi: Mainkan suara pop ringan bila ada notif masuk
+                    // let audio = new Audio('/ting.mp3'); audio.play().catch(()=>{});
+                },
+                removeToast(id) {
+                    this.toasts = this.toasts.filter(t => t.id !== id);
+                    if(this.toasts.length === 0) this.showDropdown = false;
+                },
+                clearAll() {
+                    this.toasts = [];
+                    this.showDropdown = false;
+                },
+                init() {
+                    window.addEventListener('notify', (e) => {
+                        this.addToast(e.detail.message, e.detail.type || 'info');
+                    });
+
+                    if (window.Echo) {
+                        const role = '{{ auth()->user()->role ?? "guest" }}';
+
+                        if (role === 'admin') {
+                            window.Echo.private('admin.notifications')
+                                .listen('.panitia.logged.in', (e) => {
+                                    this.addToast(e.message, e.type, e.time);
+                                })
+                                .listen('.system.data.changed', (e) => {
+                                    this.addToast(e.message, e.type, e.time);
+                                })
+                                .listen('.coupon.scanned', (e) => {
+                                    this.addToast(e.message, e.type, e.time);
+                                });
+                        }
+
+                        if (role === 'panitia') {
+                            window.Echo.private('panitia.notifications')
+                                .listen('.system.data.changed', (e) => {
+                                    this.addToast(e.message, e.type, e.time);
+                                })
+                                .listen('.coupon.scanned', (e) => {});
+                        }
+                    }
+                }
+            }));
         });
     </script>
 

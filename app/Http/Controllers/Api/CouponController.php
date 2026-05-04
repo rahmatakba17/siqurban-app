@@ -56,7 +56,7 @@ class CouponController
 
     public function checkPublic($code)
     {
-        $coupon = Coupon::with('region')->where('code', strtoupper(trim($code)))->first();
+        $coupon = Coupon::with(['region', 'scannedByUser'])->where('code', strtoupper(trim($code)))->first();
         
         if (!$coupon) {
             return response()->json(['message' => 'Not found'], 404);
@@ -69,6 +69,8 @@ class CouponController
             'type' => $coupon->type,
             'region_name' => $coupon->region ? $coupon->region->name : '-',
             'received_at' => $coupon->received_at ? $coupon->received_at->format('d M Y - H:i') : null,
+            'scanned_by' => $coupon->scannedByUser ? $coupon->scannedByUser->name : $coupon->received_by,
+            'receiver_name' => $coupon->receiver_name,
         ]);
     }
 }

@@ -147,14 +147,40 @@ class CouponController extends Controller
         $validated = $request->validated();
         $validated['qr_code'] = $this->buildCouponPayload($validated['code']);
 
+        $oldValues = $coupon->getAttributes();
         $coupon->update($validated);
+
+        \App\Models\AuditLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'coupon.update',
+            'model_type'  => 'Coupon',
+            'model_id'    => $coupon->id,
+            'old_values'  => $oldValues,
+            'new_values'  => $coupon->getAttributes(),
+            'ip_address'  => request()->ip(),
+            'description' => 'Admin mengubah data kupon',
+        ]);
 
         return redirect()->route('admin.coupons.index')->with('success', 'Kupon berhasil diperbarui.');
     }
 
     public function destroy(Coupon $coupon)
     {
+        $oldValues = $coupon->getAttributes();
+        $id = $coupon->id;
+        
         $coupon->delete();
+
+        \App\Models\AuditLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'coupon.delete',
+            'model_type'  => 'Coupon',
+            'model_id'    => $id,
+            'old_values'  => $oldValues,
+            'new_values'  => null,
+            'ip_address'  => request()->ip(),
+            'description' => 'Admin menghapus kupon',
+        ]);
 
         return back()->with('success', 'Kupon berhasil dihapus.');
     }

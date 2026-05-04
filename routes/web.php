@@ -40,6 +40,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('coupons/print-batch', [AdminCouponController::class, 'printBatch'])->name('coupons.print-batch');
 
     Route::get('scans', [AdminDashboardController::class, 'scans'])->name('scans');
+    Route::get('audit-logs', [AdminDashboardController::class, 'auditLogs'])->name('audit-logs');
     Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
     Route::get('reports/export', [AdminReportController::class, 'export'])->name('reports.export');
     Route::get('reports/export-excel', [AdminReportController::class, 'exportExcel'])->name('reports.export-excel');

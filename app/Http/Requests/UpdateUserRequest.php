@@ -11,7 +11,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->role === 'admin';
+        return auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin']);
     }
 
     /**
@@ -21,9 +21,9 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $this->user->id,
-            'phone' => 'required|string',
-            'role' => 'required|in:admin,panitia',
+            'email' => 'nullable|email|unique:users,email,' . $this->user->id,
+            'phone' => 'nullable|string',
+            'role' => 'required|in:superadmin,admin,panitia',
             'status' => 'required|in:active,inactive',
         ];
     }

@@ -98,54 +98,6 @@
         </div>
     </div>
 
-    {{-- ─── Scan Terbaru ─── --}}
-    <div class="card">
-        <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-stone-100">
-            <h3 class="text-base font-bold text-slate-900">🕒 Scan Terbaru</h3>
-            <a href="{{ route('admin.scans') }}" class="text-xs font-semibold text-primary">Lihat Semua →</a>
-        </div>
-
-        {{-- Live Feed (dari Reverb WebSocket) --}}
-        <div id="live-feed-container" class="px-5 py-3 border-b border-stone-100 hidden">
-            <div class="flex items-center gap-2 mb-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="text-xs font-semibold text-emerald-700">Live Feed Aktif</span>
-            </div>
-            <ul id="live-feed-list" class="space-y-1.5 max-h-32 overflow-y-auto"></ul>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Petugas</th>
-                        <th>Kode Kupon</th>
-                        <th>Wilayah</th>
-                        <th>Waktu</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($recentScans as $scan)
-                    <tr>
-                        <td>
-                            <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
-                                    {{ strtoupper(substr($scan->user?->name ?? '?', 0, 1)) }}
-                                </div>
-                                <span class="font-medium text-slate-700">{{ $scan->user?->name ?? '—' }}</span>
-                            </div>
-                        </td>
-                        <td><code class="text-xs bg-stone-100 px-2 py-1 rounded-lg">{{ $scan->coupon?->code ?? '—' }}</code></td>
-                        <td><span class="badge-green">{{ $scan->coupon?->region?->name ?? '—' }}</span></td>
-                        <td class="text-stone-500 text-xs">{{ $scan->scan_time->format('d/m/Y H:i') }}</td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="4" class="text-center text-stone-400 py-8">Belum ada riwayat scan.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
 
 @push('scripts')
@@ -184,30 +136,6 @@ document.addEventListener('livewire:navigated', initChart);
 // Re-init chart setelah Livewire polling update
 Livewire.hook('morph.updated', () => { setTimeout(initChart, 100); });
 
-// ── Reverb WebSocket (live feed overlay) ──────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    if (!window.Echo) return;
 
-    const feedContainer = document.getElementById('live-feed-container');
-    const feedList      = document.getElementById('live-feed-list');
-
-    window.Echo.channel('coupons')
-        .listen('.coupon.scanned', (data) => {
-            // Tampilkan feed container
-            feedContainer?.classList.remove('hidden');
-
-            // Tambah item ke live feed
-            const li = document.createElement('li');
-            li.className = 'flex items-center gap-2 text-xs rounded-lg bg-emerald-50 px-3 py-1.5 text-emerald-800 animate-fade-in-up';
-            li.innerHTML = `<span class="font-mono font-bold">${data.coupon_code}</span><span class="text-stone-400">·</span><span>${data.scanned_by}</span><span class="text-stone-400">·</span><span class="text-stone-500">${data.region}</span>`;
-            feedList.prepend(li);
-
-            // Hapus setelah 30 detik
-            setTimeout(() => li.remove(), 30000);
-
-            // Dispatch Livewire event untuk refresh stats
-            Livewire.dispatch('coupon-scanned');
-        });
-});
 </script>
 @endpush

@@ -2,18 +2,18 @@
 
 ## Deskripsi
 
-SI Qurban adalah aplikasi web distribusi kupon kurban digital berbasis **Laravel 11**.  
+SI Qurban adalah aplikasi web distribusi kupon kurban digital berbasis **Laravel 11**.
 Panduan ini menjelaskan cara menjalankan aplikasi di **Windows, macOS, dan Linux** menggunakan Docker Desktop — tanpa perlu menginstall PHP, MySQL, atau Node.js secara langsung.
 
 ---
 
 ## 🖥️ Persyaratan Sistem
 
-| OS | Persyaratan |
-|---|---|
-| **Windows 10/11** | Docker Desktop ≥ 4.25, WSL2 aktif |
-| **macOS** | Docker Desktop ≥ 4.25 (Intel atau Apple Silicon) |
-| **Linux** | Docker Engine ≥ 24 + Docker Compose Plugin v2 |
+| OS                      | Persyaratan                                       |
+| ----------------------- | ------------------------------------------------- |
+| **Windows 10/11** | Docker Desktop ≥ 4.25, WSL2 aktif                |
+| **macOS**         | Docker Desktop ≥ 4.25 (Intel atau Apple Silicon) |
+| **Linux**         | Docker Engine ≥ 24 + Docker Compose Plugin v2    |
 
 > **Download Docker Desktop**: https://www.docker.com/products/docker-desktop/
 
@@ -59,20 +59,31 @@ docker compose up --build -d
 
 Setelah container berjalan, buka browser dan akses:
 
-| Layanan | URL | Keterangan |
-|---|---|---|
-| **Aplikasi** | http://localhost:8000 | Halaman utama SI Qurban |
-| **Pulse Monitor** | http://localhost:8000/admin/pulse | Monitoring kesehatan aplikasi |
-| **phpMyAdmin** | http://localhost:8080 | Manajemen database via browser |
-| **Reverb WS** | ws://localhost:8090 | WebSocket real-time (internal) |
+| Layanan                 | URL                               | Keterangan                     |
+| ----------------------- | --------------------------------- | ------------------------------ |
+| **Aplikasi**      | http://localhost:8000             | Halaman utama SI Qurban        |
+| **Pulse Monitor** | http://localhost:8000/admin/pulse | Monitoring kesehatan aplikasi  |
+| **phpMyAdmin**    | http://localhost:8080             | Manajemen database via browser |
+| **Reverb WS**     | ws://localhost:8090               | WebSocket real-time (internal) |
 
 ### Akun Login Default
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@siqurban.local | password |
-| Panitia 1 | panitia1@siqurban.local | password |
-| Panitia 2 | panitia2@siqurban.local | password |
+| Role        | Nama Lengkap / Username | Password |
+| ----------- | ----------------------- | -------- |
+| Super Admin | Super Admin             | password |
+| Admin       | Admin SI Qurban         | password |
+| Admin       | Budi Santoso            | password |
+| Admin       | Siti Aminah             | password |
+| Panitia     | Ahmad Fauzi             | password |
+| Panitia     | Siti Rahma              | password |
+| Panitia     | Muhammad Rizky          | password |
+| Panitia     | Nur Aisyah              | password |
+| Panitia     | Bagas Santoso           | password |
+| Panitia     | Lestari Indah           | password |
+| Panitia     | Wahyu Hidayat           | password |
+| Panitia     | Dina Mariana            | password |
+| Panitia     | Eko Prasetyo            | password |
+| Panitia     | Rini Wulandari          | password |
 
 ---
 
@@ -169,8 +180,8 @@ docker compose down && docker compose up -d
 
 Pulse menampilkan kesehatan aplikasi secara real-time:
 
-1. Buka http://localhost:8000/admin/pulse  
-2. Login sebagai Admin  
+1. Buka http://localhost:8000/admin/pulse
+2. Login sebagai Admin
 3. Pantau: CPU, request lambat, error, user aktif
 
 ---
@@ -238,16 +249,16 @@ docker compose up --build -d
 
 ## 📦 Fitur yang Sudah Aktif di Docker
 
-| Fitur | Status | Keterangan |
-|---|---|---|
-| **Laravel 11** | ✅ Aktif | Nginx + PHP-FPM via Supervisor |
-| **MySQL 8.4** | ✅ Aktif | Persistent volume |
-| **phpMyAdmin** | ✅ Aktif | http://localhost:8080 |
-| **Reverb WS** | ✅ Aktif | Service terpisah port 8090 |
-| **Queue Worker** | ✅ Aktif | Dijalankan via Supervisor |
+| Fitur                   | Status   | Keterangan                        |
+| ----------------------- | -------- | --------------------------------- |
+| **Laravel 11**    | ✅ Aktif | Nginx + PHP-FPM via Supervisor    |
+| **MySQL 8.4**     | ✅ Aktif | Persistent volume                 |
+| **phpMyAdmin**    | ✅ Aktif | http://localhost:8080             |
+| **Reverb WS**     | ✅ Aktif | Service terpisah port 8090        |
+| **Queue Worker**  | ✅ Aktif | Dijalankan via Supervisor         |
 | **Pulse Monitor** | ✅ Aktif | http://localhost:8000/admin/pulse |
-| **Livewire** | ✅ Aktif | Auto-poll + real-time update |
-| **Sanctum API** | ✅ Aktif | 12 endpoint REST API |
-| **TailwindCSS** | ✅ Built | Di-build saat docker build |
-| **QR Code SVG** | ✅ Aktif | chillerlan/php-qrcode |
-| **Export Excel** | ✅ Aktif | phpoffice/phpspreadsheet |
+| **Livewire**      | ✅ Aktif | Auto-poll + real-time update      |
+| **Sanctum API**   | ✅ Aktif | 12 endpoint REST API              |
+| **TailwindCSS**   | ✅ Built | Di-build saat docker build        |
+| **QR Code SVG**   | ✅ Aktif | chillerlan/php-qrcode             |
+| **Export Excel**  | ✅ Aktif | phpoffice/phpspreadsheet          |

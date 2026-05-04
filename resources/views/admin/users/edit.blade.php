@@ -16,8 +16,8 @@
             </div>
 
             <div>
-                <label for="email" class="form-label">Email</label>
-                <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" class="form-input" required>
+                <label for="email" class="form-label">Email (Opsional)</label>
+                <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" class="form-input">
                 @error('email') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
             </div>
 
@@ -30,7 +30,10 @@
                 <div>
                     <label for="role" class="form-label">Role</label>
                     <select id="role" name="role" class="form-input" required>
-                        <option value="admin" @selected(old('role', $user->role) === 'admin')>Admin</option>
+                        @if(auth()->user()->role === 'superadmin')
+                            <option value="superadmin" @selected(old('role', $user->role) === 'superadmin')>Super Admin</option>
+                            <option value="admin" @selected(old('role', $user->role) === 'admin')>Admin</option>
+                        @endif
                         <option value="panitia" @selected(old('role', $user->role) === 'panitia')>Panitia</option>
                     </select>
                 </div>

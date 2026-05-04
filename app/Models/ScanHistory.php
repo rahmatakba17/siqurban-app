@@ -14,6 +14,10 @@ class ScanHistory extends Model
         'user_id',
         'scan_time',
         'notes',
+        'ip_address',
+        'device_info',
+        'scan_method',
+        'status_result',
     ];
 
     protected $casts = [

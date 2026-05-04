@@ -26,11 +26,15 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
+        if (auth()->user()->role === 'admin' && in_array($validated['role'], ['admin', 'superadmin'])) {
+            return back()->withErrors(['role' => 'Admin hanya dapat membuat akun Panitia.']);
+        }
+
         User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
+            'email' => $validated['email'] ?? null,
             'password' => Hash::make($validated['password']),
-            'phone' => $validated['phone'],
+            'phone' => $validated['phone'] ?? null,
             'role' => $validated['role'],
             'status' => $validated['status'],
         ]);
@@ -40,12 +44,25 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        if (auth()->user()->role === 'admin' && in_array($user->role, ['admin', 'superadmin'])) {
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk mengedit akun ini.');
+        }
+
         return view('admin.users.edit', ['user' => $user]);
     }
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        $user->update($request->validated());
+        if (auth()->user()->role === 'admin' && in_array($user->role, ['admin', 'superadmin'])) {
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk mengedit akun ini.');
+        }
+
+        $validated = $request->validated();
+        if (auth()->user()->role === 'admin' && isset($validated['role']) && in_array($validated['role'], ['admin', 'superadmin'])) {
+            return back()->withErrors(['role' => 'Anda tidak bisa mengubah role menjadi Admin/Super Admin.']);
+        }
+
+        $user->update($validated);
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil diperbarui.');
     }
@@ -56,6 +73,10 @@ class UserController extends Controller
             return back()->withErrors([
                 'general' => 'Akun yang sedang digunakan tidak dapat dihapus.',
             ]);
+        }
+
+        if (auth()->user()->role === 'admin' && in_array($user->role, ['admin', 'superadmin'])) {
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk menghapus akun ini.');
         }
 
         $user->delete();

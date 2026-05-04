@@ -68,6 +68,17 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function auditLogs()
+    {
+        $logs = \App\Models\AuditLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.audit-logs', [
+            'logs' => $logs,
+        ]);
+    }
+
     public function settings()
     {
         return view('admin.settings', [

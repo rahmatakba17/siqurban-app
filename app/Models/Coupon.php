@@ -19,6 +19,9 @@ class Coupon extends Model
         'status',
         'received_by',
         'received_at',
+        'scanned_by_user_id',
+        'receiver_name',
+        'receiver_notes',
     ];
 
     protected $casts = [
@@ -33,5 +36,10 @@ class Coupon extends Model
     public function scanHistories()
     {
         return $this->hasMany(ScanHistory::class);
+    }
+
+    public function scannedByUser()
+    {
+        return $this->belongsTo(User::class, 'scanned_by_user_id');
     }
 }
